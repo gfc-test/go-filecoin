@@ -1,23 +1,27 @@
 package proofs
 
+import (
+	"github.com/filecoin-project/go-filecoin/types"
+)
+
 // VerifySealRequest represents a request to verify the output of a Seal() operation.
 type VerifySealRequest struct {
-	CommD      CommD     // returned from seal
-	CommR      CommR     // returned from seal
-	CommRStar  CommRStar // returned from seal
-	Proof      SealProof // returned from Seal
-	ProverID   [31]byte  // uniquely identifies miner
-	SectorID   [31]byte  // uniquely identifies sector
-	ProofsMode Mode      // used to control sealing/verification performance
+	CommD      types.CommD     // returned from seal
+	CommR      types.CommR     // returned from seal
+	CommRStar  types.CommRStar // returned from seal
+	Proof      types.SealProof // returned from seal
+	ProverID   [31]byte        // uniquely identifies miner
+	SectorID   [31]byte        // uniquely identifies sector
+	SectorSize types.SectorSize
 }
 
 // VerifyPoSTRequest represents a request to generate verify a proof-of-spacetime.
 type VerifyPoSTRequest struct {
-	ChallengeSeed PoStChallengeSeed
-	CommRs        []CommR
+	ChallengeSeed types.PoStChallengeSeed
+	CommRs        []types.CommR
 	Faults        []uint64
-	Proofs        []PoStProof
-	ProofsMode    Mode // used to control sealing/verification performance
+	Proofs        []types.PoStProof
+	SectorSize    types.SectorSize
 }
 
 // VerifyPoSTResponse communicates the validity of a provided proof-of-spacetime.

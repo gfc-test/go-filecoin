@@ -14,7 +14,6 @@ import (
 	"github.com/filecoin-project/go-filecoin/address"
 	"github.com/filecoin-project/go-filecoin/consensus"
 	"github.com/filecoin-project/go-filecoin/crypto"
-	"github.com/filecoin-project/go-filecoin/proofs"
 	"github.com/filecoin-project/go-filecoin/state"
 	"github.com/filecoin-project/go-filecoin/types"
 	"github.com/filecoin-project/go-filecoin/vm"
@@ -270,7 +269,7 @@ func setupMiners(st state.Tree, sm vm.StorageMap, keys []*types.KeyInfo, miners 
 			commD := make([]byte, 32)
 			commR := make([]byte, 32)
 			commRStar := make([]byte, 32)
-			sealProof := make([]byte, proofs.SealBytesLen)
+			sealProof := make([]byte, types.SealBytesLen)
 			if _, err := pnrg.Read(commD[:]); err != nil {
 				return nil, err
 			}

@@ -19,7 +19,6 @@ import (
 	"github.com/filecoin-project/go-filecoin/consensus"
 	"github.com/filecoin-project/go-filecoin/core"
 	"github.com/filecoin-project/go-filecoin/mining"
-	"github.com/filecoin-project/go-filecoin/proofs"
 	"github.com/filecoin-project/go-filecoin/state"
 	th "github.com/filecoin-project/go-filecoin/testhelpers"
 	"github.com/filecoin-project/go-filecoin/types"
@@ -232,7 +231,7 @@ func TestGenerateMultiBlockTipSet(t *testing.T) {
 		StateRoot:    stateRoot,
 		Nonce:        1,
 	}
-	blk, err := worker.Generate(ctx, th.RequireNewTipSet(require, &baseBlock1, &baseBlock2), nil, proofs.PoStProof{}, 0)
+	blk, err := worker.Generate(ctx, th.RequireNewTipSet(require, &baseBlock1, &baseBlock2), nil, types.PoStProof{}, 0)
 	assert.NoError(err)
 
 	assert.Len(blk.Messages, 0)
@@ -306,9 +305,9 @@ func TestGeneratePoolBlockResults(t *testing.T) {
 		Parents:   types.NewSortedCidSet(newCid()),
 		Height:    types.Uint64(100),
 		StateRoot: stateRoot,
-		Proof:     proofs.PoStProof{},
+		Proof:     types.PoStProof{},
 	}
-	blk, err := worker.Generate(ctx, th.RequireNewTipSet(require, &baseBlock), nil, proofs.PoStProof{}, 0)
+	blk, err := worker.Generate(ctx, th.RequireNewTipSet(require, &baseBlock), nil, types.PoStProof{}, 0)
 	assert.NoError(err)
 
 	// This is the temporary failure + the good message,
@@ -349,16 +348,16 @@ func TestGenerateSetsBasicFields(t *testing.T) {
 		Height:       h,
 		ParentWeight: w,
 		StateRoot:    newCid(),
-		Proof:        proofs.PoStProof{},
+		Proof:        types.PoStProof{},
 	}
 	baseTipSet := th.RequireNewTipSet(require, &baseBlock)
-	blk, err := worker.Generate(ctx, baseTipSet, nil, proofs.PoStProof{}, 0)
+	blk, err := worker.Generate(ctx, baseTipSet, nil, types.PoStProof{}, 0)
 	assert.NoError(err)
 
 	assert.Equal(h+1, blk.Height)
 	assert.Equal(minerAddr, blk.Miner)
 
-	blk, err = worker.Generate(ctx, baseTipSet, nil, proofs.PoStProof{}, 1)
+	blk, err = worker.Generate(ctx, baseTipSet, nil, types.PoStProof{}, 1)
 	assert.NoError(err)
 
 	assert.Equal(h+2, blk.Height)
@@ -391,9 +390,9 @@ func TestGenerateWithoutMessages(t *testing.T) {
 		Parents:   types.NewSortedCidSet(newCid()),
 		Height:    types.Uint64(100),
 		StateRoot: newCid(),
-		Proof:     proofs.PoStProof{},
+		Proof:     types.PoStProof{},
 	}
-	blk, err := worker.Generate(ctx, th.RequireNewTipSet(require, &baseBlock), nil, proofs.PoStProof{}, 0)
+	blk, err := worker.Generate(ctx, th.RequireNewTipSet(require, &baseBlock), nil, types.PoStProof{}, 0)
 	assert.NoError(err)
 
 	assert.Len(pool.Pending(), 0) // This is the temporary failure.
@@ -433,10 +432,10 @@ func TestGenerateError(t *testing.T) {
 		Parents:   types.NewSortedCidSet(newCid()),
 		Height:    types.Uint64(100),
 		StateRoot: newCid(),
-		Proof:     proofs.PoStProof{},
+		Proof:     types.PoStProof{},
 	}
 	baseTipSet := th.RequireNewTipSet(require, &baseBlock)
-	blk, err := worker.Generate(ctx, baseTipSet, nil, proofs.PoStProof{}, 0)
+	blk, err := worker.Generate(ctx, baseTipSet, nil, types.PoStProof{}, 0)
 	assert.Error(err, "boom")
 	assert.Nil(blk)
 

@@ -30,13 +30,13 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	"github.com/filecoin-project/go-filecoin/address"
-	"github.com/filecoin-project/go-filecoin/proofs"
 	"github.com/filecoin-project/go-filecoin/proofs/sectorbuilder"
 	"github.com/filecoin-project/go-filecoin/protocol/storage/storagedeal"
 	"github.com/filecoin-project/go-filecoin/repo"
 	"github.com/filecoin-project/go-filecoin/tools/fast"
 	"github.com/filecoin-project/go-filecoin/tools/fast/series"
 	lpfc "github.com/filecoin-project/go-filecoin/tools/iptb-plugins/filecoin/local"
+	"github.com/filecoin-project/go-filecoin/types"
 )
 
 var (
@@ -399,11 +399,11 @@ func getSectorSize(smallSectors bool) (uint64, error) {
 	blockstore := bstore.NewBlockstore(rp.Datastore())
 	blockservice := bserv.New(blockstore, offline.Exchange(blockstore))
 
-	var proofsMode proofs.Mode
+	var sectorClass types.SectorClass
 	if smallSectors {
-		proofsMode = proofs.TestMode
+		sectorClass = types.NewTestSectorClass()
 	} else {
-		proofsMode = proofs.LiveMode
+		sectorClass = types.NewLiveSectorClass()
 	}
 
 	// Not a typo
@@ -414,7 +414,7 @@ func getSectorSize(smallSectors bool) (uint64, error) {
 		LastUsedSectorID: 0,
 		MetadataDir:      "",
 		MinerAddr:        addr,
-		ProofsMode:       proofsMode,
+		SectorClass:      sectorClass,
 		SealedSectorDir:  "",
 		StagedSectorDir:  "",
 	}

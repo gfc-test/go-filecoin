@@ -441,13 +441,13 @@ func (ma *Actor) CommitSector(ctx exec.VMContext, sectorID uint64, commD, commR,
 	if err := ctx.Charge(actor.DefaultGasCost); err != nil {
 		return exec.ErrInsufficientGas, errors.RevertErrorWrap(err, "Insufficient gas")
 	}
-	if len(commD) != int(proofs.CommitmentBytesLen) {
+	if len(commD) != int(types.CommitmentBytesLen) {
 		return 1, errors.NewRevertError("invalid sized commD")
 	}
-	if len(commR) != int(proofs.CommitmentBytesLen) {
+	if len(commR) != int(types.CommitmentBytesLen) {
 		return 1, errors.NewRevertError("invalid sized commR")
 	}
-	if len(commRStar) != int(proofs.CommitmentBytesLen) {
+	if len(commRStar) != int(types.CommitmentBytesLen) {
 		return 1, errors.NewRevertError("invalid sized commRStar")
 	}
 
@@ -463,9 +463,11 @@ func (ma *Actor) CommitSector(ctx exec.VMContext, sectorID uint64, commD, commR,
 		// It is undefined behavior for a miner using "LiveMode" to verify a
 		// proof created by a miner using "TestMode" (and vice-versa).
 		//
-		proofsMode := proofs.LiveMode
+		var sectorSize types.SectorSize
 		if os.Getenv("FIL_USE_SMALL_SECTORS") == "true" {
-			proofsMode = proofs.TestMode
+			sectorSize = types.OneKiBSectorSize
+		} else {
+			sectorSize = types.TwoHundredFiftySixMiBSectorSize
 		}
 
 		req := proofs.VerifySealRequest{}
@@ -475,7 +477,7 @@ func (ma *Actor) CommitSector(ctx exec.VMContext, sectorID uint64, commD, commR,
 		copy(req.Proof[:], proof)
 		req.ProverID = sectorbuilder.AddressToProverID(ctx.Message().To)
 		req.SectorID = sectorbuilder.SectorIDToBytes(sectorID)
-		req.ProofsMode = proofsMode
+		req.SectorSize = sectorSize
 
 		res, err := (&proofs.RustVerifier{}).VerifySeal(req)
 		if err != nil {
@@ -508,9 +510,9 @@ func (ma *Actor) CommitSector(ctx exec.VMContext, sectorID uint64, commD, commR,
 		inc := big.NewInt(1)
 		state.Power = state.Power.Add(state.Power, inc)
 		comms := types.Commitments{
-			CommD:     proofs.CommD{},
-			CommR:     proofs.CommR{},
-			CommRStar: proofs.CommRStar{},
+			CommD:     types.CommD{},
+			CommR:     types.CommR{},
+			CommRStar: types.CommRStar{},
 		}
 		copy(comms.CommD[:], commD)
 		copy(comms.CommR[:], commR)
@@ -645,7 +647,7 @@ func (ma *Actor) GetPower(ctx exec.VMContext) (*big.Int, uint8, error) {
 
 // SubmitPoSt is used to submit a coalesced PoST to the chain to convince the chain
 // that you have been actually storing the files you claim to be.
-func (ma *Actor) SubmitPoSt(ctx exec.VMContext, postProofs []proofs.PoStProof) (uint8, error) {
+func (ma *Actor) SubmitPoSt(ctx exec.VMContext, postProofs []types.PoStProof) (uint8, error) {
 	if err := ctx.Charge(actor.DefaultGasCost); err != nil {
 		return exec.ErrInsufficientGas, errors.RevertErrorWrap(err, "Insufficient gas")
 	}
@@ -675,9 +677,11 @@ func (ma *Actor) SubmitPoSt(ctx exec.VMContext, postProofs []proofs.PoStProof) (
 			// It is undefined behavior for a miner using "LiveMode" to verify a
 			// proof created by a miner using "TestMode" (and vice-versa).
 			//
-			proofsMode := proofs.LiveMode
+			var sectorSize types.SectorSize
 			if os.Getenv("FIL_USE_SMALL_SECTORS") == "true" {
-				proofsMode = proofs.TestMode
+				sectorSize = types.OneKiBSectorSize
+			} else {
+				sectorSize = types.TwoHundredFiftySixMiBSectorSize
 			}
 
 			seed, err := currentProvingPeriodPoStChallengeSeed(ctx, state)
@@ -685,7 +689,7 @@ func (ma *Actor) SubmitPoSt(ctx exec.VMContext, postProofs []proofs.PoStProof) (
 				return nil, errors.RevertErrorWrap(err, "failed to sample chain for challenge seed")
 			}
 
-			var commRs []proofs.CommR
+			var commRs []types.CommR
 			for _, v := range state.SectorCommitments {
 				commRs = append(commRs, v.CommR)
 			}
@@ -695,7 +699,7 @@ func (ma *Actor) SubmitPoSt(ctx exec.VMContext, postProofs []proofs.PoStProof) (
 				CommRs:        commRs,
 				Faults:        []uint64{},
 				Proofs:        postProofs,
-				ProofsMode:    proofsMode,
+				SectorSize:    sectorSize,
 			}
 
 			res, err := (&proofs.RustVerifier{}).VerifyPoST(req)
@@ -739,13 +743,13 @@ func (ma *Actor) GetProvingPeriodStart(ctx exec.VMContext) (*types.BlockHeight, 
 	return state.ProvingPeriodStart, 0, nil
 }
 
-func currentProvingPeriodPoStChallengeSeed(ctx exec.VMContext, state State) (proofs.PoStChallengeSeed, error) {
+func currentProvingPeriodPoStChallengeSeed(ctx exec.VMContext, state State) (types.PoStChallengeSeed, error) {
 	bytes, err := ctx.SampleChainRandomness(state.ProvingPeriodStart)
 	if err != nil {
-		return proofs.PoStChallengeSeed{}, err
+		return types.PoStChallengeSeed{}, err
 	}
 
-	seed := proofs.PoStChallengeSeed{}
+	seed := types.PoStChallengeSeed{}
 	copy(seed[:], bytes)
 
 	return seed, nil

@@ -909,18 +909,24 @@ func initSectorBuilderForNode(ctx context.Context, node *Node, proofsMode proofs
 		return nil, errors.Wrapf(err, "failed to get last used sector id for miner w/address %s", minerAddr.String())
 	}
 
+	var sectorClass types.SectorClass
+	if proofsMode == proofs.TestMode {
+		sectorClass = types.NewTestSectorClass()
+	} else {
+		sectorClass = types.NewLiveSectorClass()
+	}
+
 	// TODO: Where should we store the RustSectorBuilder metadata? Currently, we
 	// configure the RustSectorBuilder to store its metadata in the staging
 	// directory.
-
 	cfg := sectorbuilder.RustSectorBuilderConfig{
 		BlockService:     node.blockservice,
 		LastUsedSectorID: lastUsedSectorID,
 		MetadataDir:      node.Repo.StagingDir(),
 		MinerAddr:        minerAddr,
 		SealedSectorDir:  node.Repo.SealedDir(),
-		ProofsMode:       proofsMode,
 		StagedSectorDir:  node.Repo.StagingDir(),
+		SectorClass:      sectorClass,
 	}
 
 	sb, err := sectorbuilder.NewRustSectorBuilder(cfg)
