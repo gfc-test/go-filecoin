@@ -250,3 +250,7 @@ func (ctp *clientTestAPI) DealPut(storageDeal *storagedeal.Deal) error {
 	ctp.deals[storageDeal.Response.ProposalCid] = storageDeal
 	return nil
 }
+
+func (ctp *clientTestAPI) MessageQuery(ctx context.Context, optFrom, to address.Address, method string, params ...interface{}) ([][]byte, error) {
+	return [][]byte{{0}}, nil
+}
