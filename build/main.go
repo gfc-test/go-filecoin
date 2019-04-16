@@ -202,6 +202,12 @@ func buildGenesisFileServer() {
 	runCmd(cmd([]string{"go", "build", "-o", "./tools/genesis-file-server/genesis-file-server", "./tools/genesis-file-server/"}...))
 }
 
+func buildMigrations() {
+	log.Println("Building migrations...")
+	runCmd(cmd([]string{
+		"go", "build", "-o", "./tools/migration/go-filecoin-migrate", "./tools/migration/main.go"}...))
+}
+
 func install() {
 	log.Println("Installing...")
 
@@ -239,6 +245,8 @@ func main() {
 		buildGengen()
 	case "generate-genesis":
 		generateGenesis()
+	case "build-migrations":
+		buildMigrations()
 	case "build":
 		build()
 	case "fbuild":
